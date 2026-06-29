@@ -339,47 +339,57 @@ const AdminOrders = () => {
               {!ordersLoading && orders.length === 0 && <p style={{ textAlign: 'center', color: '#999', fontSize: '1.4rem' }}>No orders found in database.</p>}
 
               <ul style={{ padding: 0, listStyle: 'none' }}>
-                {orders.map((order) => {
-                  const dateStr = new Date(order.createdAt).toLocaleString('en-US', {
+                {orders && Array.isArray(orders) && orders.map((order) => {
+                  if (!order) return null;
+                  const dateStr = order.createdAt ? new Date(order.createdAt).toLocaleString('en-US', {
                     day: 'numeric',
                     month: 'short',
                     hour: '2-digit',
                     minute: '2-digit'
-                  });
+                  }) : 'Unknown Date';
+
+                  const priceVal = order.totalPrice != null ? Number(order.totalPrice) : 0;
 
                   return (
                     <li key={order.id} style={{ background: '#122636', padding: '15px', borderRadius: '12px', marginBottom: '20px', border: '1px solid #333' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '10px', marginBottom: '10px' }}>
                         <div>
-                          <h4 style={{ color: '#ffb300', margin: 0, fontSize: '1.4rem', fontWeight: 'bold' }}>{order.id}</h4>
+                          <h4 style={{ color: '#ffb300', margin: 0, fontSize: '1.4rem', fontWeight: 'bold' }}>{order.id || 'N/A'}</h4>
                           <span style={{ fontSize: '1.1rem', color: '#aaa' }}>Placed on: {dateStr}</span>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#fff' }}>${order.totalPrice.toFixed(2)}</span>
-                          <span style={{ display: 'block', fontSize: '1.1rem', color: '#aaa' }}>Mode: {order.paymentMethod}</span>
+                          <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#fff' }}>${priceVal.toFixed(2)}</span>
+                          <span style={{ display: 'block', fontSize: '1.1rem', color: '#aaa' }}>Mode: {order.paymentMethod || 'N/A'}</span>
                         </div>
                       </div>
 
                       <div style={{ marginBottom: '12px' }}>
                         <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block', marginBottom: '5px' }}>Items:</span>
-                        {order.items.map((item, idx) => (
-                          <div key={idx} style={{ fontSize: '1.2rem', color: '#ccc', margin: '3px 0', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>• {item.name} (x{item.quantity}) - {item.size} / {item.color}</span>
-                            <span style={{ color: '#fff' }}>${(item.price * item.quantity).toFixed(2)}</span>
-                          </div>
-                        ))}
+                        {order.items && Array.isArray(order.items) && order.items.map((item, idx) => {
+                          if (!item) return null;
+                          const itemPrice = item.price != null ? Number(item.price) : 0;
+                          const itemQty = item.quantity != null ? Number(item.quantity) : 0;
+                          return (
+                            <div key={idx} style={{ fontSize: '1.2rem', color: '#ccc', margin: '3px 0', display: 'flex', justifyContent: 'space-between' }}>
+                              <span>• {item.name || 'Product'} (x{itemQty}) - {item.size || 'N/A'} / {item.color || 'N/A'}</span>
+                              <span style={{ color: '#fff' }}>${(itemPrice * itemQty).toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
                       </div>
 
                       <div style={{ marginBottom: '15px', background: '#1a3245', padding: '10px', borderRadius: '8px' }}>
                         <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Deliver To:</span>
-                        <span style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 'bold' }}>{order.address.name} ({order.address.phone})</span>
-                        <p style={{ fontSize: '1.2rem', color: '#ccc', margin: '3px 0 0' }}>{order.address.addressDetails}</p>
+                        <span style={{ fontSize: '1.2rem', color: '#fff', fontWeight: 'bold' }}>
+                          {order.address?.name || 'N/A'} ({order.address?.phone || 'N/A'})
+                        </span>
+                        <p style={{ fontSize: '1.2rem', color: '#ccc', margin: '3px 0 0' }}>{order.address?.addressDetails || 'N/A'}</p>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <label style={{ fontSize: '1.3rem', color: '#fff', fontWeight: 'bold' }}>Update Status:</label>
                         <select
-                          value={order.status}
+                          value={order.status || 'Pending'}
                           onChange={(e) => handleStatusChange(order.id, e.target.value)}
                           style={{ padding: '8px 12px', background: '#1a3245', color: '#fff', border: '1px solid #ffb300', borderRadius: '5px', fontSize: '1.3rem', cursor: 'pointer' }}
                         >
@@ -510,28 +520,31 @@ const AdminOrders = () => {
               {!custLoading && customers.length === 0 && <p style={{ textAlign: 'center', color: '#999', fontSize: '1.4rem' }}>No customers found.</p>}
 
               <ul style={{ padding: 0, listStyle: 'none' }}>
-                {customers.map((cust) => (
-                  <li key={cust.id} style={{ background: '#122636', padding: '15px', borderRadius: '12px', marginBottom: '15px', border: '1px solid #333', display: 'flex', alignItems: 'center', justifycontent: 'space-between', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <img src={cust.avatar || 'images/icons/profile1.png'} alt="avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
-                      <div>
-                        <h4 style={{ color: '#fff', fontSize: '1.4rem', margin: 0, fontWeight: 'bold' }}>{cust.fullName}</h4>
-                        <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>{cust.email}</span>
-                        {cust.phone && <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Phone: {cust.phone}</span>}
-                        {cust.birthday && <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Birthday: {cust.birthday}</span>}
+                {customers && Array.isArray(customers) && customers.map((cust) => {
+                  if (!cust) return null;
+                  return (
+                    <li key={cust.id} style={{ background: '#122636', padding: '15px', borderRadius: '12px', marginBottom: '15px', border: '1px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <img src={cust.avatar || 'images/icons/profile1.png'} alt="avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} />
+                        <div>
+                          <h4 style={{ color: '#fff', fontSize: '1.4rem', margin: 0, fontWeight: 'bold' }}>{cust.fullName || 'N/A'}</h4>
+                          <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>{cust.email || 'N/A'}</span>
+                          {cust.phone && <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Phone: {cust.phone}</span>}
+                          {cust.birthday && <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Birthday: {cust.birthday}</span>}
+                        </div>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <button onClick={() => openEditCustomer(cust)} className="btn btn-sm" style={{ background: '#ffb300', color: '#122636', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                        Edit
-                      </button>
-                      <button onClick={() => handleDeleteCustomer(cust.id)} className="btn btn-sm" style={{ background: '#d9534f', color: '#fff', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <button onClick={() => openEditCustomer(cust)} className="btn btn-sm" style={{ background: '#ffb300', color: '#122636', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteCustomer(cust.id)} className="btn btn-sm" style={{ background: '#d9534f', color: '#fff', padding: '6px 12px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -707,53 +720,58 @@ const AdminOrders = () => {
 
               {/* Products Grid list for CRUD */}
               <ul style={{ padding: 0, listStyle: 'none' }}>
-                {products.map((prod) => (
-                  <li
-                    key={prod.id}
-                    style={{
-                      background: '#122636',
-                      padding: '12px',
-                      borderRadius: '12px',
-                      marginBottom: '15px',
-                      border: '1px solid #333',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '70%' }}>
-                      <img
-                        src={prod.images[0] || 'images/product/1.png'}
-                        alt={prod.name}
-                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }}
-                      />
-                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '75%' }}>
-                        <h4 style={{ color: '#fff', fontSize: '1.3rem', margin: '0 0 3px', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {prod.name}
-                        </h4>
-                        <span style={{ fontSize: '1.1rem', color: '#ffb300', fontWeight: 'bold' }}>Price: ${prod.price}</span>
-                        <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Stock Level: {prod.stock}</span>
+                {products && Array.isArray(products) && products.map((prod) => {
+                  if (!prod) return null;
+                  const firstImg = prod.images && prod.images[0] ? prod.images[0] : 'images/product/1.png';
+                  const priceVal = prod.price != null ? Number(prod.price) : 0;
+                  return (
+                    <li
+                      key={prod.id}
+                      style={{
+                        background: '#122636',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        marginBottom: '15px',
+                        border: '1px solid #333',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '70%' }}>
+                        <img
+                          src={firstImg}
+                          alt={prod.name || 'Product'}
+                          style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }}
+                        />
+                        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '75%' }}>
+                          <h4 style={{ color: '#fff', fontSize: '1.3rem', margin: '0 0 3px', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {prod.name || 'N/A'}
+                          </h4>
+                          <span style={{ fontSize: '1.1rem', color: '#ffb300', fontWeight: 'bold' }}>Price: ${priceVal.toFixed(2)}</span>
+                          <span style={{ fontSize: '1.1rem', color: '#aaa', display: 'block' }}>Stock Level: {prod.stock || 0}</span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <button
-                        onClick={() => openEditProduct(prod)}
-                        className="btn btn-sm"
-                        style={{ background: '#ffb300', color: '#122636', padding: '5px 10px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(prod.id)}
-                        className="btn btn-sm"
-                        style={{ background: '#d9534f', color: '#fff', padding: '5px 10px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <button
+                          onClick={() => openEditProduct(prod)}
+                          className="btn btn-sm"
+                          style={{ background: '#ffb300', color: '#122636', padding: '5px 10px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(prod.id)}
+                          className="btn btn-sm"
+                          style={{ background: '#d9534f', color: '#fff', padding: '5px 10px', borderRadius: '4px', border: 'none', fontSize: '1.1rem', fontWeight: 'bold' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
