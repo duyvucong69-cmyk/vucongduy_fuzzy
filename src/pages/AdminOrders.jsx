@@ -227,7 +227,8 @@ const AdminOrders = () => {
     setProdDesc(prod.description || '');
     
     // Parse image number from path if possible, default to 1
-    const imgMatch = prod.images[0]?.match(/(\d+)\.png/);
+    const firstImg = prod.images && prod.images[0] ? prod.images[0] : '';
+    const imgMatch = firstImg.match(/(\d+)\.png/);
     setProdImageNum(imgMatch ? imgMatch[1] : '1');
     
     setSelectedColors(prod.colors || []);
