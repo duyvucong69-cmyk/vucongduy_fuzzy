@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import { readDb, writeDb, User } from "@/lib/db";
+import { findUserByEmail, getAllUsers, saveAllUsers, updateUser, User } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
 // Helper to verify admin authority (in test mode, we accept any valid token)
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const users = readDb();
+    const users = await getAllUsers();
     // Remove passwords for safety
     const usersWithoutPasswords = users.map(({ password, ...u }) => u);
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email, password, and full name are required." }, { status: 400 });
     }
 
-    const users = readDb();
+    const users = await getAllUsers();
     const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) {
       return NextResponse.json({ error: "Email is already registered." }, { status: 400 });
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     };
 
     users.push(newUser);
-    writeDb(users);
+    await saveAllUsers(users);
 
     const { password: _, ...userWithoutPassword } = newUser;
     return NextResponse.json({
@@ -87,7 +87,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "User ID is required." }, { status: 400 });
     }
 
-    const users = readDb();
+    const users = await getAllUsers();
     const idx = users.findIndex(u => u.id === id);
 
     if (idx === -1) {
@@ -109,7 +109,7 @@ export async function PUT(req: NextRequest) {
     }
 
     users[idx] = updatedUser;
-    writeDb(users);
+    await saveAllUsers(users);
 
     const { password: _, ...userWithoutPassword } = updatedUser;
     return NextResponse.json({
@@ -136,7 +136,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "User ID is required." }, { status: 400 });
     }
 
-    const users = readDb();
+    const users = await getAllUsers();
     const originalLength = users.length;
     const filteredUsers = users.filter(u => u.id !== id);
 
@@ -144,7 +144,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Customer not found." }, { status: 404 });
     }
 
-    writeDb(filteredUsers);
+    await saveAllUsers(filteredUsers);
 
     return NextResponse.json({
       message: "Customer deleted successfully"

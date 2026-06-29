@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { isMongoDbEnabled, connectToDatabase } from './mongodb';
 
 const DB_FILE = path.join(process.cwd(), 'orders-db.json');
 
@@ -52,4 +53,25 @@ export function writeOrdersDb(orders: Order[]): void {
   } catch (error) {
     console.error('Error writing orders database file:', error);
   }
+}
+
+// Async database functions supporting both JSON and MongoDB
+export async function readOrdersDbAsync(): Promise<Order[]> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    return db.collection<Order>('orders').find({}).toArray();
+  }
+  return readOrdersDb();
+}
+
+export async function writeOrdersDbAsync(orders: Order[]): Promise<void> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    await db.collection('orders').deleteMany({});
+    if (orders.length > 0) {
+      await db.collection('orders').insertMany(orders);
+    }
+    return;
+  }
+  writeOrdersDb(orders);
 }

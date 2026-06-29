@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { findUserByEmail, readDb, writeDb, User } from "@/lib/db";
+import { findUserByEmail, getAllUsers, saveAllUsers, User } from "@/lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-12345";
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Check if user already exists
-    const existingUser = findUserByEmail(email);
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return NextResponse.json(
         { error: "Email is already registered." },
@@ -55,13 +55,13 @@ export async function POST(req: NextRequest) {
       fullName,
       phone: phone || "",
       birthday: birthday || "",
-      avatar: avatar || "",
+      avatar: avatar || "images/icons/profile1.png",
       addresses: [],
     };
 
-    const users = readDb();
+    const users = await getAllUsers();
     users.push(newUser);
-    writeDb(users);
+    await saveAllUsers(users);
 
     // 7. Generate JWT
     const token = jwt.sign({ userId: newUser.id, email: newUser.email }, JWT_SECRET, {

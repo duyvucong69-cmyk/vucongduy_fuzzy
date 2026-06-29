@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { isMongoDbEnabled, connectToDatabase } from './mongodb';
 
 const DB_FILE = path.join(process.cwd(), 'products-db.json');
 
@@ -223,3 +224,46 @@ export function writeProductsDb(data: DbData): void {
     console.error('Error writing products database file:', error);
   }
 }
+
+// Async database functions supporting both JSON and MongoDB
+export async function readProductsDbAsync(): Promise<DbData> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    
+    const catCount = await db.collection('categories').countDocuments();
+    const prodCount = await db.collection('products').countDocuments();
+    
+    if (catCount === 0 && prodCount === 0) {
+      console.log('[MongoDB] Seeding database with initial catalog...');
+      await db.collection('categories').insertMany(initialCategories);
+      await db.collection('products').insertMany(initialProducts);
+    }
+    
+    const categories = await db.collection<Category>('categories').find({}).toArray();
+    const products = await db.collection<Product>('products').find({}).toArray();
+    
+    return { categories, products };
+  }
+  
+  return readProductsDb();
+}
+
+export async function writeProductsDbAsync(data: DbData): Promise<void> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    
+    await db.collection('categories').deleteMany({});
+    if (data.categories.length > 0) {
+      await db.collection('categories').insertMany(data.categories);
+    }
+    
+    await db.collection('products').deleteMany({});
+    if (data.products.length > 0) {
+      await db.collection('products').insertMany(data.products);
+    }
+    return;
+  }
+  
+  writeProductsDb(data);
+}
+

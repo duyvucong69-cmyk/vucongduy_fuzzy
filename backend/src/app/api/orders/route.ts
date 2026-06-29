@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import { readOrdersDb, writeOrdersDb, Order, OrderItem } from "@/lib/orders-db";
-import { readProductsDb, writeProductsDb } from "@/lib/products-db";
+import { readOrdersDbAsync, writeOrdersDbAsync, Order, OrderItem } from "@/lib/orders-db";
+import { readProductsDbAsync, writeProductsDbAsync } from "@/lib/products-db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required order details." }, { status: 400 });
     }
 
-    const productsDb = readProductsDb();
+    const productsDb = await readProductsDbAsync();
     
     for (const item of items as OrderItem[]) {
       const prod = productsDb.products.find(p => p.id === item.productId);
@@ -33,9 +33,9 @@ export async function POST(req: NextRequest) {
       prod.stock -= item.quantity;
     }
 
-    writeProductsDb(productsDb);
+    await writeProductsDbAsync(productsDb);
 
-    const orders = readOrdersDb();
+    const orders = await readOrdersDbAsync();
     const newOrder: Order = {
       id: "ORD-" + Math.floor(100000 + Math.random() * 900000).toString(),
       userId: decoded.userId,
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     };
 
     orders.push(newOrder);
-    writeOrdersDb(orders);
+    await writeOrdersDbAsync(orders);
 
     return NextResponse.json({
       message: "Order placed successfully",
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get("id");
     const admin = searchParams.get("admin") === "true";
 
-    const orders = readOrdersDb();
+    const orders = await readOrdersDbAsync();
 
     if (id) {
       const order = orders.find(o => o.id === id);
@@ -119,7 +119,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Invalid status value." }, { status: 400 });
     }
 
-    const orders = readOrdersDb();
+    const orders = await readOrdersDbAsync();
     const orderIdx = orders.findIndex(o => o.id === orderId);
 
     if (orderIdx === -1) {
@@ -127,7 +127,7 @@ export async function PUT(req: NextRequest) {
     }
 
     orders[orderIdx].status = status;
-    writeOrdersDb(orders);
+    await writeOrdersDbAsync(orders);
 
     return NextResponse.json({
       message: "Order status updated successfully",

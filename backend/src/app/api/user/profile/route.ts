@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Invalid or expired token." }, { status: 401 });
     }
 
-    // 2. Find user
-    const user = findUserById(decoded.userId);
+    // 2. Find user (async)
+    const user = await findUserById(decoded.userId);
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
@@ -49,7 +49,8 @@ export async function PUT(req: NextRequest) {
     if (birthday !== undefined) updatedFields.birthday = birthday;
     if (avatar !== undefined) updatedFields.avatar = avatar;
 
-    const updatedUser = updateUser(decoded.userId, updatedFields);
+    // Async update
+    const updatedUser = await updateUser(decoded.userId, updatedFields);
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }

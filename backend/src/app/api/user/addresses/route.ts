@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const user = findUserById(decoded.userId);
+    const user = await findUserById(decoded.userId);
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const user = findUserById(decoded.userId);
+    const user = await findUserById(decoded.userId);
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     };
 
     addresses.push(newAddress);
-    updateUser(decoded.userId, { addresses });
+    await updateUser(decoded.userId, { addresses });
 
     return NextResponse.json({
       message: "Address added successfully",
@@ -77,7 +77,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const user = findUserById(decoded.userId);
+    const user = await findUserById(decoded.userId);
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
@@ -114,7 +114,7 @@ export async function PUT(req: NextRequest) {
       addresses[0].isDefault = true;
     }
 
-    updateUser(decoded.userId, { addresses });
+    await updateUser(decoded.userId, { addresses });
 
     return NextResponse.json({
       message: "Address updated successfully",
@@ -135,7 +135,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const user = findUserById(decoded.userId);
+    const user = await findUserById(decoded.userId);
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
@@ -161,7 +161,7 @@ export async function DELETE(req: NextRequest) {
       addresses[0].isDefault = true;
     }
 
-    updateUser(decoded.userId, { addresses });
+    await updateUser(decoded.userId, { addresses });
 
     return NextResponse.json({
       message: "Address deleted successfully",

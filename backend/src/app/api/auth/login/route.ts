@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { findUserByEmail, readDb, writeDb, User } from "@/lib/db";
+import { findUserByEmail, getAllUsers, saveAllUsers, User } from "@/lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-12345";
 
@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Find user in local JSON database
-    let user = findUserByEmail(email);
+    // 1. Find user in database (async)
+    let user = await findUserByEmail(email);
     
     // 2. Since this is a test version, if user does not exist, automatically register them!
     if (!user) {
@@ -38,9 +38,9 @@ export async function POST(req: NextRequest) {
         ],
       };
       
-      const users = readDb();
+      const users = await getAllUsers();
       users.push(newUser);
-      writeDb(users);
+      await saveAllUsers(users);
       
       user = newUser;
     }

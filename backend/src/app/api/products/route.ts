@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readProductsDb, writeProductsDb, Product } from "@/lib/products-db";
+import { readProductsDbAsync, writeProductsDbAsync, Product } from "@/lib/products-db";
 import { verifyToken } from "@/lib/auth";
 
 // Public GET with advanced query filters, Admin POST/PUT/DELETE
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     // Check if fetching a single product by ID
     const id = searchParams.get("id");
     if (id) {
-      const db = readProductsDb();
+      const db = await readProductsDbAsync();
       const product = db.products.find(p => p.id === id);
       if (!product) {
         return NextResponse.json({ error: "Product not found." }, { status: 404 });
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const maxPrice = parseFloat(searchParams.get("maxPrice") || "999999");
     const sort = searchParams.get("sort"); // price_asc, price_desc, rating, newest
 
-    const db = readProductsDb();
+    const db = await readProductsDbAsync();
     let filteredProducts = [...db.products];
 
     // Apply category filter
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Name, price, categoryId, and at least one image are required." }, { status: 400 });
     }
 
-    const db = readProductsDb();
+    const db = await readProductsDbAsync();
     const newProduct: Product = {
       id: "prod-" + Math.random().toString(36).substring(2, 9),
       name,
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
     };
 
     db.products.push(newProduct);
-    writeProductsDb(db);
+    await writeProductsDbAsync(db);
 
     return NextResponse.json({
       message: "Product created successfully",
@@ -161,7 +161,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
     }
 
-    const db = readProductsDb();
+    const db = await readProductsDbAsync();
     const prodIdx = db.products.findIndex(p => p.id === id);
 
     if (prodIdx === -1) {
@@ -181,7 +181,7 @@ export async function PUT(req: NextRequest) {
       rating: rating !== undefined ? parseFloat(rating) : db.products[prodIdx].rating,
     };
 
-    writeProductsDb(db);
+    await writeProductsDbAsync(db);
 
     return NextResponse.json({
       message: "Product updated successfully",
@@ -208,7 +208,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Product ID is required." }, { status: 400 });
     }
 
-    const db = readProductsDb();
+    const db = await readProductsDbAsync();
     const originalLength = db.products.length;
     db.products = db.products.filter(p => p.id !== id);
 
@@ -216,7 +216,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
     }
 
-    writeProductsDb(db);
+    await writeProductsDbAsync(db);
 
     return NextResponse.json({
       message: "Product deleted successfully",

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { isMongoDbEnabled, connectToDatabase } from './mongodb';
 
-// Define the file path for the JSON database inside the workspace temporary area or backend root
 const DB_FILE = path.join(process.cwd(), 'users-db.json');
 
 export interface Address {
@@ -23,11 +23,10 @@ export interface User {
   addresses: Address[];
 }
 
-// Read database file
+// Read database file (sync version for local fallback)
 export function readDb(): User[] {
   try {
     if (!fs.existsSync(DB_FILE)) {
-      // Initialize with empty users array
       fs.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf-8');
       return [];
     }
@@ -39,7 +38,7 @@ export function readDb(): User[] {
   }
 }
 
-// Write database file
+// Write database file (sync version for local fallback)
 export function writeDb(users: User[]): void {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2), 'utf-8');
@@ -48,30 +47,74 @@ export function writeDb(users: User[]): void {
   }
 }
 
-// Find user by email
-export function findUserByEmail(email: string): User | undefined {
+// Async database functions supporting both JSON and MongoDB
+export async function getAllUsers(): Promise<User[]> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    return db.collection<User>('users').find({}).toArray();
+  }
+  return readDb();
+}
+
+export async function saveAllUsers(users: User[]): Promise<void> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    // Re-sync entire collection (convenient for test CRUD sync)
+    await db.collection('users').deleteMany({});
+    if (users.length > 0) {
+      await db.collection('users').insertMany(users);
+    }
+    return;
+  }
+  writeDb(users);
+}
+
+export async function findUserByEmail(email: string): Promise<User | undefined> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    const user = await db.collection<User>('users').findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+    return user || undefined;
+  }
   const users = readDb();
   return users.find(u => u.email.toLowerCase() === email.toLowerCase());
 }
 
-// Find user by id
-export function findUserById(id: string): User | undefined {
+export async function findUserById(id: string): Promise<User | undefined> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    const user = await db.collection<User>('users').findOne({ id });
+    return user || undefined;
+  }
   const users = readDb();
   return users.find(u => u.id === id);
 }
 
-// Update user details
-export function updateUser(id: string, updatedFields: Partial<User>): User | null {
+export async function updateUser(id: string, updatedFields: Partial<User>): Promise<User | null> {
+  if (isMongoDbEnabled()) {
+    const { db } = await connectToDatabase();
+    const user = await db.collection<User>('users').findOne({ id });
+    if (!user) return null;
+    
+    const updatedUser = {
+      ...user,
+      ...updatedFields,
+      id: user.id, // Prevent overwriting id
+      email: user.email, // Prevent overwriting email
+    };
+    
+    await db.collection('users').replaceOne({ id }, updatedUser);
+    return updatedUser;
+  }
+
   const users = readDb();
   const idx = users.findIndex(u => u.id === id);
   if (idx === -1) return null;
 
-  // Preserve email, id, and password if not updating
   const updatedUser = {
     ...users[idx],
     ...updatedFields,
-    id: users[idx].id, // Prevent overwriting id
-    email: users[idx].email, // Prevent overwriting email
+    id: users[idx].id,
+    email: users[idx].email,
   };
 
   users[idx] = updatedUser;
