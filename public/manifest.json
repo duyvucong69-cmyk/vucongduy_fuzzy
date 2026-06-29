@@ -1,0 +1,24 @@
+{
+  "name": "Fuzzy Premium Furniture",
+  "short_name": "Fuzzy",
+  "description": "Premium e-commerce mobile application for furniture shopping.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#122636",
+  "theme_color": "#ffb300",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "images/logo/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/logo/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

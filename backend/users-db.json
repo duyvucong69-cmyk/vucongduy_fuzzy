@@ -1,0 +1,19 @@
+[
+  {
+    "id": "usr-pb7qqp5",
+    "email": "vvt2k006@gmail.com",
+    "fullName": "VVT2K006",
+    "phone": "0987654321",
+    "birthday": "1995-10-15",
+    "avatar": "images/icons/profile1.png",
+    "addresses": [
+      {
+        "id": "addr-def",
+        "name": "Home",
+        "phone": "0987654321",
+        "addressDetails": "790 Hyde Park Rd, Ontario, Canada",
+        "isDefault": true
+      }
+    ]
+  }
+]
