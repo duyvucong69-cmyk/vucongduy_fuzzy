@@ -61,8 +61,11 @@ export function isTokenExpired(token: string): boolean {
     const parts = token.split(".");
     if (parts.length !== 3) return true;
     
-    const payloadBase64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const payloadJson = atob(payloadBase64);
+    let base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) {
+      base64 += "=";
+    }
+    const payloadJson = atob(base64);
     const payload = JSON.parse(payloadJson);
     
     if (payload.exp && Date.now() >= payload.exp * 1000) {
@@ -70,6 +73,7 @@ export function isTokenExpired(token: string): boolean {
     }
     return false;
   } catch (e) {
+    console.error("JWT decode error:", e);
     return true;
   }
 }
