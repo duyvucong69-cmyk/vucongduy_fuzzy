@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fuzzy-cache-v1';
+const CACHE_NAME = 'fuzzy-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -27,7 +27,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event - Clean up old caches
+// Activate Event - Clean up old caches immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -43,23 +43,25 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Cache-first with network fallback for static resources
+// Fetch Event - Network-First for HTML/JS/CSS to prevent cache traps, Cache-First for static media
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests and skip API requests (Next.js server might be on port 3000)
+  // Only handle GET requests and skip API requests
   if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const requestUrl = event.request.url;
+  const isHtmlJsCss = event.request.mode === 'navigate' ||
+                      requestUrl.endsWith('.html') ||
+                      requestUrl.includes('/assets/') ||
+                      requestUrl.endsWith('.js') ||
+                      requestUrl.endsWith('.css');
 
-      // Try network if not in cache
-      return fetch(event.request).then((networkResponse) => {
-        // Cache new static resources dynamically
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+  if (isHtmlJsCss) {
+    // Network-First strategy to ensure latest React code is always loaded on normal F5
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
@@ -67,11 +69,35 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // Fallback to index.html when offline and request fails
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+        // Fallback to cache if network is offline
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
+      })
+    );
+  } else {
+    // Cache-First strategy for images, icons, and static fonts
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
-      });
-    })
-  );
+
+        return fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        });
+      })
+    );
+  }
 });
