@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ORD-193487",
+    "userId": "usr-pb7qqp5",
+    "items": [
+      {
+        "productId": "prod-1",
+        "name": "Modern Accent Chair",
+        "price": 180,
+        "image": "images/product/1.png",
+        "color": "#122636",
+        "size": "Standard",
+        "quantity": 1
+      },
+      {
+        "productId": "prod-4",
+        "name": "Minimalist Wooden Desk",
+        "price": 220,
+        "image": "images/product/9.png",
+        "color": "#ffffff",
+        "size": "Medium",
+        "quantity": 1
+      }
+    ],
+    "totalPrice": 405,
+    "address": {
+      "name": "Home",
+      "phone": "0987654321",
+      "addressDetails": "790 Hyde Park Rd, Ontario, Canada"
+    },
+    "paymentMethod": "Bank",
+    "status": "Completed",
+    "createdAt": "2026-06-29T03:54:35.174Z"
+  }
+]

@@ -32,7 +32,7 @@
       "name": "Modern Accent Chair",
       "description": "A stylish and comfortable modern accent chair, perfect for any living room or home office setup. Crafted with premium fabric and solid oak legs.",
       "price": 180,
-      "stock": 24,
+      "stock": 23,
       "categoryId": "cat-1",
       "images": [
         "images/product/1.png",
@@ -102,7 +102,7 @@
       "name": "Minimalist Wooden Desk",
       "description": "Clean lines and spacious surface area make this desk ideal for study, work, or gaming. Includes two integrated drawers.",
       "price": 220,
-      "stock": 15,
+      "stock": 14,
       "categoryId": "cat-4",
       "images": [
         "images/product/9.png",
