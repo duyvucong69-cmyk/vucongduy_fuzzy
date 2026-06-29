@@ -2,7 +2,15 @@
 
 const TOKEN_KEY = "fuzzy_session_token";
 const USER_KEY = "fuzzy_user_profile";
-const BACKEND_URL = "http://localhost:3000";
+
+// Dynamically select backend URL based on whether running locally or in cloud production
+const isLocal = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const BACKEND_URL = isLocal 
+  ? "http://localhost:3000" 
+  : (import.meta.env.VITE_API_URL || ""); 
+
 
 // Simple encryption (Base64 obfuscation)
 function encrypt(str: string): string {
