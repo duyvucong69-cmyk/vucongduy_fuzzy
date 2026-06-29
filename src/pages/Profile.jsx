@@ -96,6 +96,17 @@ const Profile = () => {
               </a>
             </li>
             <li>
+              <a href="#/admin-orders" className="profile-box">
+                <div className="profile-img" style={{ border: '1px solid #ffb300' }}>
+                  <i className="iconsax icon" data-icon="setting-2" style={{ color: '#ffb300' }}></i>
+                </div>
+                <div className="profile-details">
+                  <h4 style={{ color: '#ffb300' }}>Admin Portal</h4>
+                  <h5>Manage all customer orders</h5>
+                </div>
+              </a>
+            </li>
+            <li>
               <a href="#/language" className="profile-box">
                 <div className="profile-img">
                   <i className="iconsax icon" data-icon="translate"></i>

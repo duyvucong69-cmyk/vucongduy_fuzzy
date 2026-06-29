@@ -65,6 +65,11 @@ const Landing = () => {
                 </a>
               </li>
               <li>
+                <a href="#/admin-orders" className="pages">
+                  <h4 style={{ color: '#ffb300' }}>Admin Portal</h4>
+                </a>
+              </li>
+              <li>
                 <button onClick={handleLogout} className="btn w-100 text-start pages" style={{ background: 'none', border: 'none', padding: 0 }}>
                   <h4 style={{ color: '#d9534f' }}>Logout</h4>
                 </button>
