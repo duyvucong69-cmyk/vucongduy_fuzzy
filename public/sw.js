@@ -96,6 +96,9 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return networkResponse;
+        }).catch((err) => {
+          console.warn('[Service Worker] Fetch failed for:', event.request.url, err);
+          return new Response('Network error', { status: 480, statusText: 'Network Error' });
         });
       })
     );
