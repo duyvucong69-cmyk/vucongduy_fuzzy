@@ -3,13 +3,8 @@
 const TOKEN_KEY = "fuzzy_session_token";
 const USER_KEY = "fuzzy_user_profile";
 
-// Dynamically select backend URL based on whether running locally or in cloud production
-const isLocal = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-const BACKEND_URL = isLocal 
-  ? "http://localhost:3000" 
-  : (import.meta.env.VITE_API_URL || ""); 
+// Use relative path in development (handled by Vite proxy) or external API URL in production
+const BACKEND_URL = import.meta.env.VITE_API_URL || ""; 
 
 
 // Simple encryption (Base64 obfuscation)
@@ -119,14 +114,26 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
     headers,
   });
 
-  const data = await response.json();
+  let data: any = {};
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    try {
+      data = await response.json();
+    } catch (e) {
+      data = { error: "Failed to parse JSON response" };
+    }
+  } else {
+    const text = await response.text();
+    const cleanText = text.length > 150 ? `${text.substring(0, 150)}...` : text;
+    data = { error: cleanText || `HTTP ${response.status}: ${response.statusText}` };
+  }
 
   if (!response.ok) {
     if (response.status === 401 && !endpoint.includes("/api/auth/")) {
       clearAuth();
       window.location.hash = "#/login";
     }
-    throw new Error(data.error || "Something went wrong");
+    throw new Error(data.error || `Request failed with status ${response.status}`);
   }
 
   return data;

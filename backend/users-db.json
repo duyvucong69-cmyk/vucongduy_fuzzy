@@ -15,5 +15,15 @@
         "isDefault": true
       }
     ]
+  },
+  {
+    "id": "crb96q2u2",
+    "email": "test@fuzzy.com",
+    "password": "$2b$10$.xtrfAWlhRhvkmo3NNTtr.hG/P/oF/iEf96NyKuuc7wnWYNMCjqz2",
+    "fullName": "Test User",
+    "phone": "",
+    "birthday": "",
+    "avatar": "images/icons/profile1.png",
+    "addresses": []
   }
 ]
