@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import { findUserByEmail, getAllUsers, saveAllUsers, User } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { findUserByEmail } from "@/lib/db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key-12345";
 
@@ -10,51 +11,47 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required." },
+        { error: "Email và mật khẩu là bắt buộc." },
         { status: 400 }
       );
     }
 
     // 1. Find user in database (async)
-    let user = await findUserByEmail(email);
+    const user = await findUserByEmail(email);
     
-    // 2. Since this is a test version, if user does not exist, automatically register them!
+    // 2. If user does not exist, return error
     if (!user) {
-      const newUser: User = {
-        id: "usr-" + Math.random().toString(36).substring(2, 9),
-        email,
-        fullName: email.split('@')[0].toUpperCase(), // Default name from email prefix
-        phone: "0987654321",
-        birthday: "1995-10-15",
-        avatar: "images/icons/profile1.png",
-        addresses: [
-          {
-            id: "addr-def",
-            name: "Home",
-            phone: "0987654321",
-            addressDetails: "790 Hyde Park Rd, Ontario, Canada",
-            isDefault: true
-          }
-        ],
-      };
-      
-      const users = await getAllUsers();
-      users.push(newUser);
-      await saveAllUsers(users);
-      
-      user = newUser;
+      return NextResponse.json(
+        { error: "Tài khoản chưa được đăng ký." },
+        { status: 401 }
+      );
     }
 
-    // 3. Bypass password hashing check for testing - accept ANY password!
+    // 3. Check password
+    if (!user.password) {
+      return NextResponse.json(
+        { error: "Tài khoản chưa được thiết lập mật khẩu. Vui lòng đăng ký lại." },
+        { status: 401 }
+      );
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json(
+        { error: "Mật khẩu không chính xác." },
+        { status: 401 }
+      );
+    }
+
     // Generate JWT token
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "30d", // Extended expiration for test environment
+      expiresIn: "7d",
     });
 
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({
-      message: "Test Login successful (Any credentials accepted)",
+      message: "Đăng nhập thành công",
       token,
       user: userWithoutPassword,
     });

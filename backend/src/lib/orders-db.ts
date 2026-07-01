@@ -2,7 +2,20 @@ import fs from 'fs';
 import path from 'path';
 import { isMongoDbEnabled, connectToDatabase } from './mongodb';
 
-const DB_FILE = path.join(process.cwd(), 'orders-db.json');
+const ORIGINAL_DB_FILE = path.join(process.cwd(), 'orders-db.json');
+const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'orders-db.json') : ORIGINAL_DB_FILE;
+
+if (process.env.VERCEL && !fs.existsSync(DB_FILE)) {
+  try {
+    if (fs.existsSync(ORIGINAL_DB_FILE)) {
+      fs.copyFileSync(ORIGINAL_DB_FILE, DB_FILE);
+    } else {
+      fs.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf-8');
+    }
+  } catch (err) {
+    console.error('Failed to initialize orders DB in /tmp:', err);
+  }
+}
 
 export interface OrderItem {
   productId: string;

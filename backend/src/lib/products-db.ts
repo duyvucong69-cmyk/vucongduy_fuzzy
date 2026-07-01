@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { isMongoDbEnabled, connectToDatabase } from './mongodb';
 
-const DB_FILE = path.join(process.cwd(), 'products-db.json');
+const ORIGINAL_DB_FILE = path.join(process.cwd(), 'products-db.json');
+const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'products-db.json') : ORIGINAL_DB_FILE;
 
 export interface Category {
   id: string;
@@ -200,6 +201,19 @@ const initialProducts: Product[] = [
 export interface DbData {
   categories: Category[];
   products: Product[];
+}
+
+if (process.env.VERCEL && !fs.existsSync(DB_FILE)) {
+  try {
+    if (fs.existsSync(ORIGINAL_DB_FILE)) {
+      fs.copyFileSync(ORIGINAL_DB_FILE, DB_FILE);
+    } else {
+      const initialData: DbData = { categories: initialCategories, products: initialProducts };
+      fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
+    }
+  } catch (err) {
+    console.error('Failed to initialize products DB in /tmp:', err);
+  }
 }
 
 export function readProductsDb(): DbData {

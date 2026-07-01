@@ -1,25 +1,8 @@
 [
   {
-    "id": "usr-pb7qqp5",
-    "email": "vvt2k006@gmail.com",
-    "fullName": "VVT2K006",
-    "phone": "0987654321",
-    "birthday": "1995-10-15",
-    "avatar": "images/icons/profile1.png",
-    "addresses": [
-      {
-        "id": "addr-def",
-        "name": "Home",
-        "phone": "0987654321",
-        "addressDetails": "790 Hyde Park Rd, Ontario, Canada",
-        "isDefault": true
-      }
-    ]
-  },
-  {
     "id": "crb96q2u2",
     "email": "test@fuzzy.com",
-    "password": "$2b$10$.xtrfAWlhRhvkmo3NNTtr.hG/P/oF/iEf96NyKuuc7wnWYNMCjqz2",
+    "password": "$2b$10$Kg6ZQ0KhvKK7iw504hLu1u7CucMzkHdtqhWztrRXt4k0bMsOr690C",
     "fullName": "Test User",
     "phone": "",
     "birthday": "",
